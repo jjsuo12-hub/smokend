@@ -72,3 +72,10 @@ export async function addJournalRecord(record: JournalRecord) {
   await writeJson(keys.journalRecords, nextRecords);
   return nextRecords;
 }
+
+export async function deleteJournalRecord(recordId: string) {
+  const records = await getJournalRecords();
+  const nextRecords = records.filter((record) => record.id !== recordId);
+  await writeJson(keys.journalRecords, nextRecords);
+  return nextRecords;
+}

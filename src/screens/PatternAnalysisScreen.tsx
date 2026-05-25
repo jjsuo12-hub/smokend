@@ -3,8 +3,8 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { AnalysisCard } from '@/features/patternAnalysis/components/AnalysisCard';
 import { EmptyAnalysisState } from '@/features/patternAnalysis/components/EmptyAnalysisState';
 import { PeriodFilter } from '@/features/patternAnalysis/components/PeriodFilter';
-import { usePatternAnalysis } from '@/features/patternAnalysis/usePatternAnalysis';
 import { HaltSignal } from '@/features/patternAnalysis/types';
+import { usePatternAnalysis } from '@/features/patternAnalysis/usePatternAnalysis';
 import { colors, spacing, typography } from '@/shared/styles';
 
 type PatternAnalysisScreenProps = {
@@ -27,11 +27,13 @@ const haltCardDescriptions: Record<HaltSignal, string> = {
   Tired: '피로가 쌓이면 흡연 충동으로 느껴질 수 있어요.',
 };
 
+const insufficientRecordText = '아직 분석할 기록이 부족해요';
+
 export function PatternAnalysisScreen({ refreshKey, onBack, onOpenChecklist }: PatternAnalysisScreenProps) {
   const { loading, period, setPeriod, summary } = usePatternAnalysis(refreshKey);
   const haltValue = summary.mostFrequentHaltSignal
     ? `${summary.mostFrequentHaltSignal}\n${haltDescriptions[summary.mostFrequentHaltSignal]}`
-    : '아직 분석할 기록이 부족해요';
+    : insufficientRecordText;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -54,7 +56,7 @@ export function PatternAnalysisScreen({ refreshKey, onBack, onOpenChecklist }: P
         <View style={styles.cardList}>
           <AnalysisCard
             title="흡연 충동이 많은 시간대"
-            value={summary.mostFrequentTimeBucket ?? '아직 분석할 기록이 부족해요'}
+            value={summary.mostFrequentTimeBucket ?? insufficientRecordText}
             description="이 시간대에는 미리 물 마시기나 짧은 산책을 준비해보세요."
           />
           <AnalysisCard
@@ -68,13 +70,13 @@ export function PatternAnalysisScreen({ refreshKey, onBack, onOpenChecklist }: P
           />
           <AnalysisCard
             title="평균 흡연 충동 점수"
-            value={summary.averageUrgeScore === null ? '아직 분석할 기록이 부족해요' : `${summary.averageUrgeScore.toFixed(1)}점`}
+            value={summary.averageUrgeScore === null ? insufficientRecordText : `${summary.averageUrgeScore.toFixed(1)}점`}
             description="점수가 높을수록 강한 충동을 자주 경험했다는 뜻이에요."
           />
           <AnalysisCard
             title="자주 추천된 대처 방법"
-            value={summary.mostRecommendedAction?.title ?? '아직 분석할 기록이 부족해요'}
-            description="체크리스트 결과에서 가장 자주 제안된 방법이에요. 아직 대처 후 충동 변화 기록이 없어 실제 효과 분석은 추후 업데이트 예정입니다."
+            value={summary.mostRecommendedAction?.title ?? insufficientRecordText}
+            description="체크리스트 결과에서 가장 자주 제안된 방법이에요."
           />
         </View>
       )}
@@ -108,8 +110,8 @@ const styles = StyleSheet.create({
   },
   loading: {
     alignItems: 'center',
-    minHeight: 180,
     justifyContent: 'center',
+    minHeight: 180,
   },
   cardList: {
     gap: spacing.md,

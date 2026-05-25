@@ -43,6 +43,11 @@ export default function AppRoot() {
     setRefreshKey((current) => current + 1);
   };
 
+  const handleQuitProfileChanged = (profile: QuitProfile) => {
+    setQuitProfile(profile);
+    setRefreshKey((current) => current + 1);
+  };
+
   if (loading) {
     return (
       <View style={styles.loading}>
@@ -70,7 +75,15 @@ export default function AppRoot() {
   }
 
   if (screen === 'calendar') {
-    return <CalendarScreen refreshKey={refreshKey} onBack={() => setScreen('home')} onJournalSaved={handleRecordsChanged} />;
+    return (
+      <CalendarScreen
+        quitProfile={quitProfile}
+        refreshKey={refreshKey}
+        onBack={() => setScreen('home')}
+        onJournalSaved={handleRecordsChanged}
+        onQuitProfileChanged={handleQuitProfileChanged}
+      />
+    );
   }
 
   if (screen === 'withdrawal') {

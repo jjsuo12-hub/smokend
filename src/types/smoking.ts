@@ -71,6 +71,8 @@ export type JournalRecord = {
   createdAt: string;
   hadCraving: boolean;
   resistedSmoking: boolean;
+  failedToResistSmoking: boolean;
+  failureReason: string;
   copingMethods: string[];
   customCopingMethod: string;
   memo: string;

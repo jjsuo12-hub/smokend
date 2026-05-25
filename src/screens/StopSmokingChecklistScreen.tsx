@@ -98,18 +98,7 @@ export function StopSmokingChecklistScreen({ smokingType, onBack, onCompleted }:
         <Card>
           <Text style={styles.sectionTitle}>3단계: 현재 흡연 충동 점수</Text>
           <Text style={styles.description}>위의 항목들을 모두 읽고 실천한 지금, 나의 흡연 충동은 몇 점인가요?</Text>
-          <View style={styles.scoreGrid}>
-            {Array.from({ length: 10 }, (_, index) => index + 1).map((score) => (
-              <Pressable
-                key={score}
-                accessibilityRole="button"
-                onPress={() => setCravingScore(score)}
-                style={[styles.scoreButton, cravingScore === score && styles.scoreButtonSelected]}
-              >
-                <Text style={[styles.scoreText, cravingScore === score && styles.scoreTextSelected]}>{score}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <CravingScoreSelector value={cravingScore} onChange={setCravingScore} />
           <View style={styles.scoreLabels}>
             <Text style={styles.smallText}>1점: 전혀 없음</Text>
             <Text style={styles.smallText}>10점: 견딜 수 없음</Text>
@@ -157,6 +146,50 @@ function CheckRow({ label, selected, onPress }: { label: string; selected: boole
       </View>
       <Text style={styles.checkLabel}>{label}</Text>
     </Pressable>
+  );
+}
+
+function CravingScoreSelector({ value, onChange }: { value: number | null; onChange: (score: number) => void }) {
+  const scores = Array.from({ length: 10 }, (_, index) => index + 1);
+  const selectedScore = value ?? 0;
+
+  return (
+    <View style={styles.scoreSelector}>
+      <View style={styles.radioRow}>
+        {scores.map((score) => {
+          const selected = selectedScore === score;
+          return (
+            <Pressable
+              key={score}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: selected }}
+              onPress={() => onChange(score)}
+              style={styles.radioItem}
+            >
+              <View style={[styles.radioOuter, selected && styles.radioOuterSelected]}>
+                {selected ? <View style={styles.radioInner} /> : null}
+              </View>
+              <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>{score}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.sliderTrack}>
+        {scores.map((score) => {
+          const active = selectedScore >= score;
+          return (
+            <Pressable
+              key={score}
+              accessibilityRole="button"
+              accessibilityLabel={`흡연 충동 점수 ${score}점`}
+              onPress={() => onChange(score)}
+              style={[styles.sliderSegment, active && styles.sliderSegmentActive]}
+            />
+          );
+        })}
+      </View>
+      <View style={[styles.sliderThumb, { left: `${selectedScore ? (selectedScore - 1) * (100 / 9) : 0}%` }]} />
+    </View>
   );
 }
 
@@ -221,29 +254,69 @@ const styles = StyleSheet.create({
     fontSize: typography.body,
     lineHeight: 22,
   },
-  scoreGrid: {
+  scoreSelector: {
+    gap: spacing.md,
+    position: 'relative',
+  },
+  radioRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
+    justifyContent: 'space-between',
   },
-  scoreButton: {
+  radioItem: {
     alignItems: 'center',
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radius.md,
-    height: 44,
+    gap: spacing.xs,
+    minWidth: 24,
+  },
+  radioOuter: {
+    alignItems: 'center',
+    borderColor: colors.border,
+    borderRadius: 9,
+    borderWidth: 2,
+    height: 18,
     justifyContent: 'center',
-    width: 44,
+    width: 18,
   },
-  scoreButtonSelected: {
+  radioOuterSelected: {
+    borderColor: colors.primary,
+  },
+  radioInner: {
     backgroundColor: colors.primary,
+    borderRadius: 5,
+    height: 10,
+    width: 10,
   },
-  scoreText: {
+  radioLabel: {
     color: colors.primaryDark,
-    fontSize: typography.body,
+    fontSize: typography.small,
     fontWeight: '800',
   },
-  scoreTextSelected: {
-    color: colors.surface,
+  radioLabelSelected: {
+    color: colors.primary,
+  },
+  sliderTrack: {
+    flexDirection: 'row',
+    gap: 3,
+    height: 16,
+    paddingHorizontal: 2,
+  },
+  sliderSegment: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.sm,
+    flex: 1,
+  },
+  sliderSegmentActive: {
+    backgroundColor: colors.primary,
+  },
+  sliderThumb: {
+    backgroundColor: colors.surface,
+    borderColor: colors.primaryDark,
+    borderRadius: 11,
+    borderWidth: 2,
+    bottom: -3,
+    height: 22,
+    marginLeft: -11,
+    position: 'absolute',
+    width: 22,
   },
   scoreLabels: {
     flexDirection: 'row',

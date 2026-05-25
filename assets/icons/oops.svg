@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <path d="M 100 25 C 145 22, 178 55, 175 100 C 172 145, 145 178, 100 175 C 55 172, 22 145, 25 100 C 28 55, 55 28, 100 25 Z" fill="#FFE082" stroke="#F5B041" stroke-width="8" stroke-linejoin="round"/>
+
+  <ellipse cx="60" cy="110" rx="14" ry="9" fill="#FF5252" opacity="0.4"/>
+  <ellipse cx="140" cy="110" rx="14" ry="9" fill="#FF5252" opacity="0.4"/>
+
+  <polyline points="55,75 75,85 55,95" fill="none" stroke="#424242" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="145,75 125,85 145,95" fill="none" stroke="#424242" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M 85 130 Q 100 115 115 130" fill="none" stroke="#424242" stroke-width="7" stroke-linecap="round"/>
+
+  <g transform="translate(10, -20) rotate(15 150 50)">
+      <path d="M 150 20 Q 148 40 150 60" fill="none" stroke="#E53935" stroke-width="12" stroke-linecap="round"/>
+      <circle cx="150" cy="80" r="6" fill="#E53935"/>
+  </g>
+</svg>
