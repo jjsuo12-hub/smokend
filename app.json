@@ -32,7 +32,15 @@
     "plugins": [
       "expo-router",
       "expo-notifications",
-      "expo-asset"
-    ]
+      "expo-asset",
+      "expo-font"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "eee170c5-f88e-4089-a858-8d7d587b4288"
+      }
+    },
+    "owner": "spidey38"
   }
 }

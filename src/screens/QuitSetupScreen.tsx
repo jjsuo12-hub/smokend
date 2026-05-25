@@ -24,18 +24,24 @@ export function QuitSetupScreen({ onCompleted }: QuitSetupScreenProps) {
       return;
     }
     setSaving(true);
-    const quitStartDate = getQuitStartDateFromDays(quitDays);
-    const notificationResult = await scheduleWithdrawalReminder(getQuitDay(quitStartDate), defaultNotificationTime);
-    const profile: QuitProfile = {
-      quitStartDate,
-      initialQuitDays: quitDays,
-      configuredAt: new Date().toISOString(),
-      notificationEnabled: notificationResult.enabled,
-      reminderTime: defaultNotificationTime,
-    };
-    await saveQuitProfile(profile);
-    setSaving(false);
-    onCompleted(profile);
+    try {
+      const quitStartDate = getQuitStartDateFromDays(quitDays);
+      const notificationResult = await scheduleWithdrawalReminder(getQuitDay(quitStartDate), defaultNotificationTime);
+      const profile: QuitProfile = {
+        quitStartDate,
+        initialQuitDays: quitDays,
+        configuredAt: new Date().toISOString(),
+        notificationEnabled: notificationResult.enabled,
+        reminderTime: defaultNotificationTime,
+      };
+      await saveQuitProfile(profile);
+      onCompleted(profile);
+    } catch (error) {
+      // 저장 중 예외가 나도 앱이 종료되지 않게 한다. 사용자는 다시 시도할 수 있다.
+      console.warn('[QuitSetup] 금연 설정 저장에 실패했습니다.', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

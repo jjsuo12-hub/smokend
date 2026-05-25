@@ -5,6 +5,8 @@ node_modules/
 .expo/
 dist/
 web-build/
+*.apk
+*.aab
 .expo-web.log
 .expo-web.err.log
 .expo-web*.log
