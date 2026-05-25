@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Smokend",
+    "slug": "smokend",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "smokend",
+    "userInterfaceStyle": "light",
+    "platforms": [
+      "android",
+      "web"
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "android": {
+      "package": "com.smokend.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-notifications",
+      "expo-asset"
+    ]
+  }
+}
