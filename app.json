@@ -4,6 +4,7 @@
     "slug": "smokend",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "scheme": "smokend",
     "userInterfaceStyle": "light",
     "platforms": [
@@ -12,10 +13,21 @@
     ],
     "web": {
       "bundler": "metro",
-      "output": "static"
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff",
+      "imageWidth": 578
     },
     "android": {
-      "package": "com.smokend.app"
+      "package": "com.smokend.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
     },
     "plugins": [
       "expo-router",

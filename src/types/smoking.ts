@@ -80,4 +80,5 @@ export type AppScreen =
   | 'home'
   | 'checklist'
   | 'calendar'
-  | 'withdrawal';
+  | 'withdrawal'
+  | 'patternAnalysis';

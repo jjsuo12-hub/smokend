@@ -5,6 +5,7 @@ import { getQuitProfile, getSmokingTypeResult } from '@/storage/smokingStorage';
 import { AppScreen, ChecklistRecord, JournalRecord, QuitProfile, SmokingTypeResult } from '@/types/smoking';
 import { CalendarScreen } from './CalendarScreen';
 import { HomeScreen } from './HomeScreen';
+import { PatternAnalysisScreen } from './PatternAnalysisScreen';
 import { QuitSetupScreen } from './QuitSetupScreen';
 import { SmokingTypeTestScreen } from './SmokingTypeTestScreen';
 import { StopSmokingChecklistScreen } from './StopSmokingChecklistScreen';
@@ -76,12 +77,23 @@ export default function AppRoot() {
     return <WithdrawalInfoScreen quitProfile={quitProfile} onBack={() => setScreen('home')} />;
   }
 
+  if (screen === 'patternAnalysis') {
+    return (
+      <PatternAnalysisScreen
+        refreshKey={refreshKey}
+        onBack={() => setScreen('home')}
+        onOpenChecklist={() => setScreen('checklist')}
+      />
+    );
+  }
+
   return (
     <HomeScreen
       result={testResult}
       quitProfile={quitProfile}
       onOpenChecklist={() => setScreen('checklist')}
       onOpenCalendar={() => setScreen('calendar')}
+      onOpenPatternAnalysis={() => setScreen('patternAnalysis')}
       onOpenWithdrawal={() => setScreen('withdrawal')}
       onResetTest={() => {
         setTestResult(null);
