@@ -2,32 +2,35 @@
 
 ## 1. 작업 요약
 
-홈 화면의 세 가지 일반 카드 버튼(금연 캘린더, 금단현상 알리미, 나의 금연 분석)의 회색 점선 border를 조정했다.
+GitHub push 전 민감 정보와 커밋 제외 대상 파일을 점검한 뒤 현재 변경 사항을 `origin/main`에 push했다.
 
 ## 2. 변경 파일
 
-- `src/screens/HomeScreen.tsx`: 카드 border를 React Native 기본 dashed border에서 `react-native-svg` 점선 Rect로 변경
-- `TASK.md`: 작업 목표와 범위 기록
-- `RESULT.md`: 작업 결과 기록
+- `TASK.md`: Git push 전 점검과 push 작업 범위 기록
+- `RESULT.md`: 민감 정보 점검 결과와 push 결과 기록
 
 ## 3. 주요 변경 내용
 
-- border 두께: 기존 `3` 기준 약 1.2배인 `3.6` 적용
-- dash 길이: 기존 기준값 `10` 대비 약 1.05배인 `10.5` 적용
-- dash gap: `6` 유지
-- 세 카드 모두 동일한 SVG dashed border를 사용하도록 처리
+- `.gitignore`에 의해 `.env`, `.env.*`, `.expo`, `dist`, `node_modules`, 로그 파일이 제외되는지 확인했다.
+- 실제 Git 추적 대상에 `.env`, 로그, `dist`, `.expo`, `node_modules`가 포함되지 않는지 확인했다.
+- 대표 토큰/API 키/비밀번호/private key 패턴을 검색했다.
+- staged diff 검사 중 발견된 `assets/icons/maps.svg` trailing whitespace를 정리했다.
+- 변경 사항을 커밋하고 GitHub 원격 저장소로 push했다.
 
 ## 4. 플랫폼별 영향
 
-- Android: 기존 의존성 `react-native-svg`로 점선 border를 렌더링한다.
-- Web: Expo Web에서도 SVG 점선 border가 렌더링된다.
+- Android: 원격 저장소에 최신 앱 소스와 자산이 반영되었다.
+- Web: 원격 저장소에 최신 Web export 관련 설정과 앱 소스가 반영되었다.
 
 ## 5. 검증 결과
 
+- 민감 패턴 검색: 실제 API 키, 토큰, 비밀번호, private key 형식 값 발견 없음
+- `git status --ignored --short`: `.expo`, `dist`, `node_modules`, 로그 파일이 ignored 상태임을 확인
+- `git diff --cached --check`: 최종 통과
 - `npm.cmd run typecheck`: 통과
-- `npm.cmd run export:web`: 통과
-- Web export 중 기존 `expo-notifications` Web listener 경고가 출력되었지만 export는 성공했다.
+- `git push origin main`: 통과
 
 ## 6. 남은 이슈
 
-- 실제 기기별 SVG dash 렌더링은 플랫폼 안티앨리어싱 차이로 약간 다르게 보일 수 있다.
+- 첫 번째 push 커밋: `c1b3f7c` (`Add pattern analysis and responsive home UI`)
+- 이 `RESULT.md` 기록은 첫 번째 push 이후 작성되었으므로 별도 문서 갱신 커밋으로 추가 push한다.
