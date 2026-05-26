@@ -6,8 +6,8 @@
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
-    "web": "expo start --web",
-    "export:web": "expo export --platform web",
+    "web": "set PUBLIC_APP_ENV=preview&& expo start --web --port 8090",
+    "export:web": "set PUBLIC_APP_ENV=preview&& expo export --platform web",
     "typecheck": "tsc --noEmit",
     "build:android:apk": "npx eas-cli build -p android --profile preview"
   },

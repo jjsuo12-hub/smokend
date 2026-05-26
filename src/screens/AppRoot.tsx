@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, BackHandler, Platform, StyleSheet, View } from 'react-native';
 import { colors } from '@/shared/styles';
 import { getQuitProfile, getSmokingTypeResult } from '@/storage/smokingStorage';
 import { AppScreen, ChecklistRecord, JournalRecord, QuitProfile, SmokingTypeResult } from '@/types/smoking';
@@ -28,6 +28,19 @@ export default function AppRoot() {
   useEffect(() => {
     void loadResult();
   }, [loadResult]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android' || screen === 'home') {
+      return undefined;
+    }
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setScreen('home');
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [screen]);
 
   const handleTestCompleted = (result: SmokingTypeResult) => {
     setTestResult(result);

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { LayoutChangeEvent, Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Card } from '@/components/Card';
 import { CopingActionLinkButton } from '@/components/CopingActionLinkButton';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -150,45 +150,79 @@ function CheckRow({ label, selected, onPress }: { label: string; selected: boole
 }
 
 function CravingScoreSelector({ value, onChange }: { value: number | null; onChange: (score: number) => void }) {
+  const [sliderWidth, setSliderWidth] = useState(0);
   const scores = Array.from({ length: 10 }, (_, index) => index + 1);
-  const selectedScore = value ?? 0;
+  const selectedScore = value ?? 1;
+  const progressPercent = ((selectedScore - 1) / 9) * 100;
+  const updateScoreFromX = (x: number) => {
+    if (sliderWidth <= 0) {
+      return;
+    }
+
+    const clampedX = Math.min(Math.max(x, 0), sliderWidth);
+    const nextScore = Math.round((clampedX / sliderWidth) * 9) + 1;
+    onChange(nextScore);
+  };
+  const handleSliderLayout = (event: LayoutChangeEvent) => {
+    setSliderWidth(event.nativeEvent.layout.width);
+  };
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_event, gestureState) => Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
+        onPanResponderGrant: (event) => updateScoreFromX(event.nativeEvent.locationX),
+        onPanResponderMove: (event) => updateScoreFromX(event.nativeEvent.locationX),
+        onPanResponderTerminationRequest: () => true,
+      }),
+    [sliderWidth, onChange],
+  );
 
   return (
     <View style={styles.scoreSelector}>
-      <View style={styles.radioRow}>
+      <View
+        accessibilityRole="adjustable"
+        accessibilityLabel="현재 흡연 충동 점수 슬라이더"
+        accessibilityValue={{ min: 1, max: 10, now: selectedScore }}
+        onLayout={handleSliderLayout}
+        style={styles.sliderWrap}
+        {...panResponder.panHandlers}
+      >
+        <View style={styles.sliderRail}>
+          <View style={[styles.sliderFill, { width: `${progressPercent}%` }]} />
+        </View>
+        <View style={[styles.sliderThumb, { left: `${progressPercent}%` }]} />
+        <View style={styles.sliderHitArea}>
+          {scores.map((score) => (
+            <Pressable
+              key={score}
+              accessibilityRole="adjustable"
+              accessibilityLabel={`흡연 충동 점수 ${score}점`}
+              accessibilityState={{ selected: selectedScore === score }}
+              onPress={() => onChange(score)}
+              style={styles.sliderStepButton}
+            />
+          ))}
+        </View>
+      </View>
+      <View style={styles.tickRow}>
         {scores.map((score) => {
           const selected = selectedScore === score;
           return (
             <Pressable
               key={score}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: selected }}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              accessibilityLabel={`흡연 충동 점수 ${score}점`}
               onPress={() => onChange(score)}
-              style={styles.radioItem}
+              style={styles.tickItem}
             >
-              <View style={[styles.radioOuter, selected && styles.radioOuterSelected]}>
-                {selected ? <View style={styles.radioInner} /> : null}
-              </View>
-              <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>{score}</Text>
+              <View style={[styles.tickMark, selected && styles.tickMarkSelected]} />
+              <Text style={[styles.tickLabel, selected && styles.tickLabelSelected]}>{score}</Text>
             </Pressable>
           );
         })}
       </View>
-      <View style={styles.sliderTrack}>
-        {scores.map((score) => {
-          const active = selectedScore >= score;
-          return (
-            <Pressable
-              key={score}
-              accessibilityRole="button"
-              accessibilityLabel={`흡연 충동 점수 ${score}점`}
-              onPress={() => onChange(score)}
-              style={[styles.sliderSegment, active && styles.sliderSegmentActive]}
-            />
-          );
-        })}
-      </View>
-      <View style={[styles.sliderThumb, { left: `${selectedScore ? (selectedScore - 1) * (100 / 9) : 0}%` }]} />
     </View>
   );
 }
@@ -255,68 +289,78 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   scoreSelector: {
-    gap: spacing.md,
+    alignSelf: 'center',
+    maxWidth: 360,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.md,
+    width: '100%',
+  },
+  sliderWrap: {
+    height: 34,
+    justifyContent: 'center',
     position: 'relative',
   },
-  radioRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  sliderRail: {
+    backgroundColor: '#D1D5DB',
+    borderRadius: 999,
+    height: 6,
+    overflow: 'hidden',
+    width: '100%',
   },
-  radioItem: {
-    alignItems: 'center',
-    gap: spacing.xs,
-    minWidth: 24,
-  },
-  radioOuter: {
-    alignItems: 'center',
-    borderColor: colors.border,
-    borderRadius: 9,
-    borderWidth: 2,
-    height: 18,
-    justifyContent: 'center',
-    width: 18,
-  },
-  radioOuterSelected: {
-    borderColor: colors.primary,
-  },
-  radioInner: {
+  sliderFill: {
     backgroundColor: colors.primary,
-    borderRadius: 5,
-    height: 10,
-    width: 10,
-  },
-  radioLabel: {
-    color: colors.primaryDark,
-    fontSize: typography.small,
-    fontWeight: '800',
-  },
-  radioLabelSelected: {
-    color: colors.primary,
-  },
-  sliderTrack: {
-    flexDirection: 'row',
-    gap: 3,
-    height: 16,
-    paddingHorizontal: 2,
-  },
-  sliderSegment: {
-    backgroundColor: colors.surfaceMuted,
-    borderRadius: radius.sm,
-    flex: 1,
-  },
-  sliderSegmentActive: {
-    backgroundColor: colors.primary,
+    borderRadius: 999,
+    height: '100%',
   },
   sliderThumb: {
-    backgroundColor: colors.surface,
-    borderColor: colors.primaryDark,
-    borderRadius: 11,
-    borderWidth: 2,
-    bottom: -3,
-    height: 22,
-    marginLeft: -11,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    height: 20,
+    marginLeft: -10,
     position: 'absolute',
-    width: 22,
+    top: 7,
+    width: 20,
+    zIndex: 2,
+  },
+  sliderHitArea: {
+    bottom: 0,
+    flexDirection: 'row',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 3,
+  },
+  sliderStepButton: {
+    flex: 1,
+  },
+  tickRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.xs,
+  },
+  tickItem: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 3,
+  },
+  tickMark: {
+    backgroundColor: '#9CA3AF',
+    borderRadius: 2,
+    height: 8,
+    width: 2,
+  },
+  tickMarkSelected: {
+    backgroundColor: colors.primary,
+    height: 10,
+  },
+  tickLabel: {
+    color: colors.textMuted,
+    fontSize: typography.small,
+  },
+  tickLabelSelected: {
+    color: colors.primary,
+    fontWeight: '900',
   },
   scoreLabels: {
     flexDirection: 'row',

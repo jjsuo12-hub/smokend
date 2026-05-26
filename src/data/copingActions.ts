@@ -1,6 +1,7 @@
 import { CopingAction, SmokingTypeId } from '@/types/smoking';
 
 export const miniGameUrl = 'https://poki.com/kr/g/longcat#fullscreen';
+export const onlineDamtaUrl = 'https://www.damta.world/';
 
 export const copingActionsBySmokingType: Record<SmokingTypeId, CopingAction[]> = {
   stimulation: [
@@ -31,6 +32,10 @@ export const copingActionsBySmokingType: Record<SmokingTypeId, CopingAction[]> =
     {
       title: '온라인담타 사용하기',
       description: '담배를 피우지 않더라도 기존의 쉬는 시간, 담배 타임이 주던 심리적 여유와 소통의 즐거움을 대체합니다.',
+      link: {
+        label: '온라인 담타 바로가기',
+        url: onlineDamtaUrl,
+      },
     },
     {
       title: '3분 정도 좋아하는 음악 듣기',

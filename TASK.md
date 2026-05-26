@@ -2,69 +2,52 @@
 
 ## 1. 목표
 
-`adb logcat`에서 확인된 Android APK 실행 직후 native crash를 Expo SDK 호환 의존성 정렬로 해결한다.
+흡연 멈춰 체크리스트의 현재 흡연 충동 점수 슬라이더를 실제 드래그로 조작할 수 있게 변경한다.
 
 ## 2. 현재 상황
 
-- 실제 오류:
-  - `FATAL EXCEPTION: pool-4-thread-1`
-  - `Process: com.smokend.app`
-  - `java.lang.NoSuchMethodError`
-  - `No static method getDirectConverter(Ljava/lang/Class;)Lexpo/modules/kotlin/types/JSTypeConverter;`
-  - 위치: `expo.modules.font.FontLoaderModule.definition(FontLoaderModule.kt:98)`
-- JavaScript 실행 전 native 모듈 단계에서 앱이 종료된다.
-- 원인은 화면 로직, AsyncStorage, router 문제가 아니라 `expo-font` / `expo-modules-core` 계열 버전 충돌로 판단한다.
+- `StopSmokingChecklistScreen`의 `CravingScoreSelector`는 `sample/slider`와 유사한 track/thumb/tick UI를 표시한다.
+- 현재 구현은 1~10 위치를 누르는 방식이며, 실제 손가락 드래그 제스처는 처리하지 않는다.
 
 ## 3. 현재 문제
 
-Expo SDK 53 기준으로 Expo 관련 패키지와 native 모듈 버전이 완전히 정렬되지 않았거나, 기존 `node_modules`/lockfile에 충돌 버전이 남아 있을 수 있다.
+사용자가 요구한 드래그 조작이 되지 않고, 터치 위치 선택만 가능하다.
 
 ## 4. 플랫폼 영향
 
-- Android: native 모듈 버전 충돌을 제거해 APK 실행 직후 종료를 해결한다.
-- Web: 기존 Web export/Vercel 흐름을 유지한다.
-- 공통 로직: 기존 기능과 최초 실행 흡연유형 테스트 흐름은 변경하지 않는다.
+- Android: 손가락으로 thumb/track 영역을 좌우 드래그해 1~10 점수를 선택한다.
+- Web: 마우스 드래그 또는 터치로 1~10 점수를 선택한다.
+- 공통 로직: 저장되는 `cravingScore` 값과 체크리스트 기록 구조는 유지한다.
 
 ## 5. 관련 파일
 
-- `package.json`
-- `package-lock.json`
-- `node_modules/`
-- `RESULT.md`
+- `src/screens/StopSmokingChecklistScreen.tsx`
 - `TASK.md`
+- `RESULT.md`
 
 ## 6. 원인 가설
 
-`expo-font`가 참조하는 `expo-modules-core` Kotlin API와 실제 APK에 포함된 `expo-modules-core` 버전이 맞지 않아 native `NoSuchMethodError`가 발생했다.
+이전 구현은 `Pressable`만 사용해 점수 지점 선택을 처리했기 때문에 연속적인 drag gesture 이벤트를 받지 못했다.
 
 ## 7. 수정 요구사항
 
-- 현재 패키지 버전을 확인한다.
-- `npx expo install expo-font expo-modules-core expo-router expo-notifications @expo/vector-icons @react-native-async-storage/async-storage`로 Expo SDK 호환 버전을 설치한다.
-- `npx expo-doctor`로 의존성 정합성을 확인한다.
-- `node_modules`와 `package-lock.json`을 삭제 후 `npm install`로 깨끗하게 재설치한다.
-- Expo 캐시 정리 실행을 시도한다.
-- `npm run export:web`을 검증한다.
-- EAS preview APK를 `--clear-cache`로 재빌드한다.
+- React Native 기본 `PanResponder`로 슬라이더 드래그를 처리한다.
+- 드래그 위치를 1~10 정수 점수로 변환한다.
+- 트랙 밖으로 이동해도 1~10 범위로 clamp한다.
+- 기존 UI 스타일과 저장 로직은 유지한다.
 
 ## 8. 금지사항
 
+- 별도 제스처 라이브러리 추가 금지
+- CSS/SCSS 추가 금지
+- 기존 체크리스트 저장 구조 변경 금지
 - 기존 기능 삭제 금지
-- 최초 실행 흡연유형 테스트 흐름 변경 금지
-- 임의 버전 수동 지정 금지
-- Git remote 변경 금지
-- 비밀키 출력 금지
-- iOS 검증/설정 추가 금지
 
 ## 9. 검증 방법
 
-- `npx.cmd expo-doctor`
 - `npm.cmd run typecheck`
 - `npm.cmd run export:web`
-- `npx.cmd expo start -c`
-- `npx.cmd eas-cli build -p android --profile preview --clear-cache --non-interactive`
-- 가능하면 `adb uninstall com.smokend.app`
 
 ## 10. 작업 결과 기록 방식
 
-작업 후 `RESULT.md`에 실제 오류, 버전 충돌 원인, `package.json` 변경사항, 실행 명령어, `expo-doctor` 결과, Web export 결과, APK 빌드 결과, Android 재설치 확인 여부를 기록한다.
+작업 후 `RESULT.md`에 변경 파일, 주요 변경 내용, Android/Web 영향, 검증 결과를 기록한다.
