@@ -6,9 +6,9 @@ import {
   DailyJournalCravingResult,
   HaltSignal,
   PatternAnalysisSummary,
+  PeriodTrendAnalysis,
   RecommendedAction,
-  SevenDayAnalysis,
-  SevenDayComparisonMetric,
+  PeriodComparisonMetric,
   TimeBucket,
 } from './types';
 
@@ -144,18 +144,24 @@ export function createPatternAnalysisSummary(records: ChecklistRecord[]): Patter
   };
 }
 
-export function createSevenDayAnalysis(checklistRecords: ChecklistRecord[], journalRecords: JournalRecord[], now = new Date()): SevenDayAnalysis {
-  const currentDates = getDateRange(now, 7);
-  const previousDates = getDateRange(addLocalDays(now, -7), 7);
+export function createPeriodTrendAnalysis(
+  checklistRecords: ChecklistRecord[],
+  journalRecords: JournalRecord[],
+  days: number,
+  now = new Date(),
+): PeriodTrendAnalysis {
+  const currentDates = getDateRange(now, days);
+  const previousDates = getDateRange(addLocalDays(now, -days), days);
   const checklistUsage = createDailyChecklistUsage(checklistRecords, currentDates);
   const journalCravingResults = createDailyJournalCravingResults(journalRecords, currentDates);
   const previousChecklistUsage = createDailyChecklistUsage(checklistRecords, previousDates);
   const previousJournalCravingResults = createDailyJournalCravingResults(journalRecords, previousDates);
 
   return {
+    days,
     checklistUsage,
     journalCravingResults,
-    comparisonMetrics: createSevenDayComparisonMetrics(
+    comparisonMetrics: createPeriodComparisonMetrics(
       checklistUsage,
       previousChecklistUsage,
       journalCravingResults,
@@ -226,7 +232,7 @@ function formatHour(hour: number) {
   return `오후 ${hour - 12}시`;
 }
 
-function createSevenDayComparisonMetrics(
+function createPeriodComparisonMetrics(
   currentChecklistUsage: DailyChecklistUsage[],
   previousChecklistUsage: DailyChecklistUsage[],
   currentJournalResults: DailyJournalCravingResult[],
@@ -234,7 +240,7 @@ function createSevenDayComparisonMetrics(
   checklistRecords: ChecklistRecord[],
   currentDates: Date[],
   previousDates: Date[],
-): SevenDayComparisonMetric[] {
+): PeriodComparisonMetric[] {
   const currentDateKeys = new Set(currentDates.map(toDateKey));
   const previousDateKeys = new Set(previousDates.map(toDateKey));
   const currentChecklistRecords = checklistRecords.filter((record) => currentDateKeys.has(record.date));

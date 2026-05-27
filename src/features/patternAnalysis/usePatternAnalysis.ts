@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getChecklistRecords, getJournalRecords } from '@/storage/smokingStorage';
 import { ChecklistRecord, JournalRecord } from '@/types/smoking';
-import { createPatternAnalysisSummary, createSevenDayAnalysis, filterRecordsByPeriod } from './patternAnalysisUtils';
+import { createPatternAnalysisSummary, createPeriodTrendAnalysis, filterRecordsByPeriod } from './patternAnalysisUtils';
 import { AnalysisPeriod } from './types';
 
 export function usePatternAnalysis(refreshKey: number) {
@@ -24,7 +24,8 @@ export function usePatternAnalysis(refreshKey: number) {
 
   const filteredRecords = useMemo(() => filterRecordsByPeriod(records, period), [records, period]);
   const summary = useMemo(() => createPatternAnalysisSummary(filteredRecords), [filteredRecords]);
-  const sevenDayAnalysis = useMemo(() => createSevenDayAnalysis(records, journalRecords), [records, journalRecords]);
+  const sevenDayAnalysis = useMemo(() => createPeriodTrendAnalysis(records, journalRecords, 7), [records, journalRecords]);
+  const thirtyDayAnalysis = useMemo(() => createPeriodTrendAnalysis(records, journalRecords, 30), [records, journalRecords]);
 
   return {
     loading,
@@ -35,5 +36,6 @@ export function usePatternAnalysis(refreshKey: number) {
     filteredRecords,
     summary,
     sevenDayAnalysis,
+    thirtyDayAnalysis,
   };
 }

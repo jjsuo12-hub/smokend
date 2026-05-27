@@ -28,6 +28,7 @@ export function LineChartCard({ title, description, labels, series }: LineChartC
   const plotWidth = chartWidth - paddingLeft - paddingRight;
   const plotHeight = chartHeight - paddingTop - paddingBottom;
   const xStep = labels.length > 1 ? plotWidth / (labels.length - 1) : 0;
+  const labelInterval = labels.length > 14 ? 5 : 1;
 
   return (
     <Card>
@@ -48,9 +49,14 @@ export function LineChartCard({ title, description, labels, series }: LineChartC
             return <Line key={ratio} x1={paddingLeft} x2={chartWidth - paddingRight} y1={y} y2={y} stroke={colors.borderMuted} strokeWidth={1} />;
           })}
           {labels.map((label, index) => {
+            const shouldShowLabel = index === 0 || index === labels.length - 1 || index % labelInterval === 0;
+            if (!shouldShowLabel) {
+              return null;
+            }
+
             const x = paddingLeft + xStep * index;
             return (
-              <SvgText key={label} x={x} y={chartHeight - 12} fill={colors.textMuted} fontSize="10" textAnchor="middle">
+              <SvgText key={`${label}-${index}`} x={x} y={chartHeight - 12} fill={colors.textMuted} fontSize="10" textAnchor="middle">
                 {label}
               </SvgText>
             );

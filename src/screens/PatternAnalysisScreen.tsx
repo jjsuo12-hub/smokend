@@ -32,11 +32,11 @@ const haltCardDescriptions: Record<HaltSignal, string> = {
 const insufficientRecordText = '아직 분석할 기록이 부족해요';
 
 export function PatternAnalysisScreen({ refreshKey, onBack, onOpenChecklist }: PatternAnalysisScreenProps) {
-  const { loading, period, setPeriod, sevenDayAnalysis, summary } = usePatternAnalysis(refreshKey);
+  const { loading, period, setPeriod, sevenDayAnalysis, thirtyDayAnalysis, summary } = usePatternAnalysis(refreshKey);
   const haltValue = summary.mostFrequentHaltSignal
     ? `${summary.mostFrequentHaltSignal}\n${haltDescriptions[summary.mostFrequentHaltSignal]}`
     : insufficientRecordText;
-  const isSevenDayMode = period === '7d';
+  const periodTrendAnalysis = period === '7d' ? sevenDayAnalysis : period === '30d' ? thirtyDayAnalysis : null;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -53,35 +53,35 @@ export function PatternAnalysisScreen({ refreshKey, onBack, onOpenChecklist }: P
         <View style={styles.loading}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
-      ) : isSevenDayMode ? (
+      ) : periodTrendAnalysis ? (
         <View style={styles.cardList}>
-          <SevenDayComparisonCard metrics={sevenDayAnalysis.comparisonMetrics} />
+          <SevenDayComparisonCard days={periodTrendAnalysis.days} metrics={periodTrendAnalysis.comparisonMetrics} />
           <LineChartCard
-            title="최근 7일 체크리스트 사용률"
+            title={`최근 ${periodTrendAnalysis.days}일 체크리스트 사용률`}
             description="흡연멈춰 체크리스트를 하루에 몇 번 사용했는지 보여줘요."
-            labels={sevenDayAnalysis.checklistUsage.map((item) => item.label)}
+            labels={periodTrendAnalysis.checklistUsage.map((item) => item.label)}
             series={[
               {
                 label: '체크리스트 사용',
                 color: colors.primary,
-                values: sevenDayAnalysis.checklistUsage.map((item) => item.count),
+                values: periodTrendAnalysis.checklistUsage.map((item) => item.count),
               },
             ]}
           />
           <LineChartCard
-            title="최근 7일 흡연욕구 대응 기록"
+            title={`최근 ${periodTrendAnalysis.days}일 흡연욕구 대응 기록`}
             description="금연일기에서 흡연욕구를 참아낸 횟수와 참아내지 못한 횟수를 함께 보여줘요."
-            labels={sevenDayAnalysis.journalCravingResults.map((item) => item.label)}
+            labels={periodTrendAnalysis.journalCravingResults.map((item) => item.label)}
             series={[
               {
                 label: '참아낸 횟수',
                 color: '#168A4A',
-                values: sevenDayAnalysis.journalCravingResults.map((item) => item.resistedCount),
+                values: periodTrendAnalysis.journalCravingResults.map((item) => item.resistedCount),
               },
               {
                 label: '참아내지 못한 횟수',
                 color: colors.primaryDark,
-                values: sevenDayAnalysis.journalCravingResults.map((item) => item.failedCount),
+                values: periodTrendAnalysis.journalCravingResults.map((item) => item.failedCount),
               },
             ]}
           />

@@ -26,17 +26,18 @@ export type DailyJournalCravingResult = {
   failedCount: number;
 };
 
-export type SevenDayComparisonMetric = {
+export type PeriodComparisonMetric = {
   label: string;
   previousValue: number;
   currentValue: number;
   unit: string;
 };
 
-export type SevenDayAnalysis = {
+export type PeriodTrendAnalysis = {
+  days: number;
   checklistUsage: DailyChecklistUsage[];
   journalCravingResults: DailyJournalCravingResult[];
-  comparisonMetrics: SevenDayComparisonMetric[];
+  comparisonMetrics: PeriodComparisonMetric[];
 };
 
 export type ActionEffectRecord = {

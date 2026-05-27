@@ -1,17 +1,18 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Card } from '@/components/Card';
 import { colors, spacing, typography } from '@/shared/styles';
-import { SevenDayComparisonMetric } from '../types';
+import { PeriodComparisonMetric } from '../types';
 
 type SevenDayComparisonCardProps = {
-  metrics: SevenDayComparisonMetric[];
+  days: number;
+  metrics: PeriodComparisonMetric[];
 };
 
-export function SevenDayComparisonCard({ metrics }: SevenDayComparisonCardProps) {
+export function SevenDayComparisonCard({ days, metrics }: SevenDayComparisonCardProps) {
   return (
     <Card>
-      <Text style={styles.title}>7일 전과 현재 비교</Text>
-      <Text style={styles.description}>직전 7일과 최근 7일의 흡연 관련 지표를 비교해요.</Text>
+      <Text style={styles.title}>{days}일 전과 현재 비교</Text>
+      <Text style={styles.description}>직전 {days}일과 최근 {days}일의 흡연 관련 지표를 비교해요.</Text>
       <View style={styles.metricList}>
         {metrics.map((metric) => {
           const delta = metric.currentValue - metric.previousValue;
@@ -19,7 +20,7 @@ export function SevenDayComparisonCard({ metrics }: SevenDayComparisonCardProps)
             <View key={metric.label} style={styles.metricRow}>
               <Text style={styles.metricLabel}>{metric.label}</Text>
               <View style={styles.metricValues}>
-                <Text style={styles.metricValue}>7일 전 {formatMetricValue(metric.previousValue, metric.unit)}</Text>
+                <Text style={styles.metricValue}>{days}일 전 {formatMetricValue(metric.previousValue, metric.unit)}</Text>
                 <Text style={styles.arrow}>→</Text>
                 <Text style={styles.metricValue}>현재 {formatMetricValue(metric.currentValue, metric.unit)}</Text>
                 <Text style={[styles.delta, delta > 0 && styles.deltaUp, delta < 0 && styles.deltaDown]}>
