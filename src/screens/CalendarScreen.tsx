@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Line, Path, Polyline } from 'react-native-svg';
 import { Card } from '@/components/Card';
 import { CopingActionLinkButton } from '@/components/CopingActionLinkButton';
@@ -139,6 +139,7 @@ export function CalendarScreen({
         configuredAt: now.toISOString(),
       };
       await saveQuitProfile(resetProfile);
+      await scheduleWithdrawalNotificationsSafely(resetProfile.quitStartDate);
       onQuitProfileChanged(resetProfile);
     }
 
@@ -465,6 +466,20 @@ function addMonths(date: Date, amount: number) {
 function createYearOptions(centerYear: number) {
   const startYear = centerYear - 30;
   return Array.from({ length: 61 }, (_, index) => startYear + index);
+}
+
+async function scheduleWithdrawalNotificationsSafely(startDate: string) {
+  if (Platform.OS === 'web') {
+    console.log('[withdrawalNotifications] Web 환경에서는 금단증상 푸시 알림 예약을 건너뜁니다.');
+    return;
+  }
+
+  try {
+    const { scheduleDailyWithdrawalNotification } = await import('@/utils/withdrawalNotifications');
+    await scheduleDailyWithdrawalNotification(startDate);
+  } catch (error) {
+    console.warn('[CalendarScreen] 금연 시작일 변경 후 금단증상 알림 예약에 실패했습니다.', error);
+  }
 }
 
 function formatJournalCravingStatus(record: JournalRecord) {

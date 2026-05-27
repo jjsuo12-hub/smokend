@@ -2,33 +2,32 @@
 
 ## 1. 작업 요약
 
-흡연 멈춰 체크리스트의 현재 흡연 충동 점수 슬라이더를 실제 드래그 가능한 UI로 변경했다.
+금단현상 알림이 화면의 긴 문장이 화면 width를 넘어갈 때 공백문자 기준으로 개행되도록 수정했다.
 
 ## 2. 변경 파일
 
-- `src/screens/StopSmokingChecklistScreen.tsx`
+- `src/screens/WithdrawalInfoScreen.tsx`
 - `TASK.md`
 - `RESULT.md`
 
 ## 3. 주요 변경 내용
 
-- React Native 기본 `PanResponder`를 사용해 슬라이더 드래그를 처리한다.
-- 트랙 너비를 측정한 뒤 드래그 위치를 1~10 정수 점수로 변환한다.
-- 트랙 밖으로 이동해도 점수는 1~10 범위로 제한된다.
-- 기존 track/thumb/tick UI와 체크리스트 저장 구조는 유지했다.
+- 화면 width와 카드 padding을 기준으로 한 줄에 들어갈 대략적인 글자 수를 계산한다.
+- 문장이 해당 길이를 넘는 경우 공백 단위로 줄을 나눈다.
+- 단어 내부는 자르지 않는다.
+- 짧은 문장은 그대로 표시한다.
+- 오늘의 안내 문구, 보조 안내 문구, 카드 문구, 날짜별 금단증상 문구에 동일하게 적용했다.
 
 ## 4. 플랫폼별 영향
 
-- Android: 손가락으로 슬라이더를 좌우 드래그해 점수를 선택할 수 있다.
-- Web: 마우스 또는 터치 드래그로 점수를 선택할 수 있다.
+- Android: 긴 문구가 화면 폭에 맞춰 공백 기준으로 줄바꿈된다.
+- Web: 동일한 개행 로직이 적용된다.
 
 ## 5. 검증 결과
 
 - `npm.cmd run typecheck`: 통과
 - `npm.cmd run export:web`: 통과
 
-Web export 중 `expo-notifications`의 Web push token listener 미지원 경고가 표시됐지만 export는 성공했다.
-
 ## 6. 남은 이슈
 
-- 없음
+- 글꼴별 실제 픽셀 폭을 정밀 측정하는 방식은 아니고, 화면 폭과 fontSize 기반의 근사 계산이다.

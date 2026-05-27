@@ -2,7 +2,9 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { AnalysisCard } from '@/features/patternAnalysis/components/AnalysisCard';
 import { EmptyAnalysisState } from '@/features/patternAnalysis/components/EmptyAnalysisState';
+import { LineChartCard } from '@/features/patternAnalysis/components/LineChartCard';
 import { PeriodFilter } from '@/features/patternAnalysis/components/PeriodFilter';
+import { SevenDayComparisonCard } from '@/features/patternAnalysis/components/SevenDayComparisonCard';
 import { HaltSignal } from '@/features/patternAnalysis/types';
 import { usePatternAnalysis } from '@/features/patternAnalysis/usePatternAnalysis';
 import { colors, spacing, typography } from '@/shared/styles';
@@ -30,10 +32,11 @@ const haltCardDescriptions: Record<HaltSignal, string> = {
 const insufficientRecordText = '아직 분석할 기록이 부족해요';
 
 export function PatternAnalysisScreen({ refreshKey, onBack, onOpenChecklist }: PatternAnalysisScreenProps) {
-  const { loading, period, setPeriod, summary } = usePatternAnalysis(refreshKey);
+  const { loading, period, setPeriod, sevenDayAnalysis, summary } = usePatternAnalysis(refreshKey);
   const haltValue = summary.mostFrequentHaltSignal
     ? `${summary.mostFrequentHaltSignal}\n${haltDescriptions[summary.mostFrequentHaltSignal]}`
     : insufficientRecordText;
+  const isSevenDayMode = period === '7d';
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -49,6 +52,39 @@ export function PatternAnalysisScreen({ refreshKey, onBack, onOpenChecklist }: P
       {loading ? (
         <View style={styles.loading}>
           <ActivityIndicator color={colors.primary} size="large" />
+        </View>
+      ) : isSevenDayMode ? (
+        <View style={styles.cardList}>
+          <SevenDayComparisonCard metrics={sevenDayAnalysis.comparisonMetrics} />
+          <LineChartCard
+            title="최근 7일 체크리스트 사용률"
+            description="흡연멈춰 체크리스트를 하루에 몇 번 사용했는지 보여줘요."
+            labels={sevenDayAnalysis.checklistUsage.map((item) => item.label)}
+            series={[
+              {
+                label: '체크리스트 사용',
+                color: colors.primary,
+                values: sevenDayAnalysis.checklistUsage.map((item) => item.count),
+              },
+            ]}
+          />
+          <LineChartCard
+            title="최근 7일 흡연욕구 대응 기록"
+            description="금연일기에서 흡연욕구를 참아낸 횟수와 참아내지 못한 횟수를 함께 보여줘요."
+            labels={sevenDayAnalysis.journalCravingResults.map((item) => item.label)}
+            series={[
+              {
+                label: '참아낸 횟수',
+                color: '#168A4A',
+                values: sevenDayAnalysis.journalCravingResults.map((item) => item.resistedCount),
+              },
+              {
+                label: '참아내지 못한 횟수',
+                color: colors.primaryDark,
+                values: sevenDayAnalysis.journalCravingResults.map((item) => item.failedCount),
+              },
+            ]}
+          />
         </View>
       ) : summary.totalRecords === 0 ? (
         <EmptyAnalysisState onOpenChecklist={onOpenChecklist} />

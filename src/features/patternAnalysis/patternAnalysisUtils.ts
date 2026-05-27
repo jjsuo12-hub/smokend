@@ -1,5 +1,16 @@
-import { ChecklistRecord } from '@/types/smoking';
-import { AnalysisPeriod, HaltSignal, PatternAnalysisSummary, RecommendedAction, TimeBucket } from './types';
+import { ChecklistRecord, JournalRecord } from '@/types/smoking';
+import { toDateKey } from '@/utils/date';
+import {
+  AnalysisPeriod,
+  DailyChecklistUsage,
+  DailyJournalCravingResult,
+  HaltSignal,
+  PatternAnalysisSummary,
+  RecommendedAction,
+  SevenDayAnalysis,
+  SevenDayComparisonMetric,
+  TimeBucket,
+} from './types';
 
 const haltPriority: HaltSignal[] = ['Hungry', 'Angry', 'Lonely', 'Tired'];
 
@@ -133,6 +144,53 @@ export function createPatternAnalysisSummary(records: ChecklistRecord[]): Patter
   };
 }
 
+export function createSevenDayAnalysis(checklistRecords: ChecklistRecord[], journalRecords: JournalRecord[], now = new Date()): SevenDayAnalysis {
+  const currentDates = getDateRange(now, 7);
+  const previousDates = getDateRange(addLocalDays(now, -7), 7);
+  const checklistUsage = createDailyChecklistUsage(checklistRecords, currentDates);
+  const journalCravingResults = createDailyJournalCravingResults(journalRecords, currentDates);
+  const previousChecklistUsage = createDailyChecklistUsage(checklistRecords, previousDates);
+  const previousJournalCravingResults = createDailyJournalCravingResults(journalRecords, previousDates);
+
+  return {
+    checklistUsage,
+    journalCravingResults,
+    comparisonMetrics: createSevenDayComparisonMetrics(
+      checklistUsage,
+      previousChecklistUsage,
+      journalCravingResults,
+      previousJournalCravingResults,
+      checklistRecords,
+      currentDates,
+      previousDates,
+    ),
+  };
+}
+
+export function createDailyChecklistUsage(records: ChecklistRecord[], dates: Date[]): DailyChecklistUsage[] {
+  return dates.map((date) => {
+    const dateKey = toDateKey(date);
+    return {
+      date: dateKey,
+      label: formatShortDate(date),
+      count: records.filter((record) => record.date === dateKey || toDateKey(new Date(record.createdAt)) === dateKey).length,
+    };
+  });
+}
+
+export function createDailyJournalCravingResults(records: JournalRecord[], dates: Date[]): DailyJournalCravingResult[] {
+  return dates.map((date) => {
+    const dateKey = toDateKey(date);
+    const dayRecords = records.filter((record) => record.date === dateKey || toDateKey(new Date(record.createdAt)) === dateKey);
+    return {
+      date: dateKey,
+      label: formatShortDate(date),
+      resistedCount: dayRecords.filter((record) => record.resistedSmoking).length,
+      failedCount: dayRecords.filter((record) => record.failedToResistSmoking).length,
+    };
+  });
+}
+
 function getTimeBucketFromRecord(record: ChecklistRecord) {
   if (record.createdAt) {
     return getTimeBucketFromDate(record.createdAt);
@@ -166,4 +224,72 @@ function formatHour(hour: number) {
     return '오전 0시';
   }
   return `오후 ${hour - 12}시`;
+}
+
+function createSevenDayComparisonMetrics(
+  currentChecklistUsage: DailyChecklistUsage[],
+  previousChecklistUsage: DailyChecklistUsage[],
+  currentJournalResults: DailyJournalCravingResult[],
+  previousJournalResults: DailyJournalCravingResult[],
+  checklistRecords: ChecklistRecord[],
+  currentDates: Date[],
+  previousDates: Date[],
+): SevenDayComparisonMetric[] {
+  const currentDateKeys = new Set(currentDates.map(toDateKey));
+  const previousDateKeys = new Set(previousDates.map(toDateKey));
+  const currentChecklistRecords = checklistRecords.filter((record) => currentDateKeys.has(record.date));
+  const previousChecklistRecords = checklistRecords.filter((record) => previousDateKeys.has(record.date));
+
+  return [
+    {
+      label: '체크리스트 사용',
+      previousValue: sumDailyChecklistUsage(previousChecklistUsage),
+      currentValue: sumDailyChecklistUsage(currentChecklistUsage),
+      unit: '회',
+    },
+    {
+      label: '평균 흡연 충동 점수',
+      previousValue: getAverageUrgeScore(previousChecklistRecords) ?? 0,
+      currentValue: getAverageUrgeScore(currentChecklistRecords) ?? 0,
+      unit: '점',
+    },
+    {
+      label: '흡연욕구 참아낸 횟수',
+      previousValue: sumDailyJournalValue(previousJournalResults, 'resistedCount'),
+      currentValue: sumDailyJournalValue(currentJournalResults, 'resistedCount'),
+      unit: '회',
+    },
+    {
+      label: '참아내지 못한 횟수',
+      previousValue: sumDailyJournalValue(previousJournalResults, 'failedCount'),
+      currentValue: sumDailyJournalValue(currentJournalResults, 'failedCount'),
+      unit: '회',
+    },
+  ];
+}
+
+function getDateRange(endDate: Date, days: number) {
+  return Array.from({ length: days }, (_, index) => addLocalDays(startOfLocalDay(endDate), index - (days - 1)));
+}
+
+function addLocalDays(date: Date, amount: number) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + amount);
+  return nextDate;
+}
+
+function startOfLocalDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function formatShortDate(date: Date) {
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+function sumDailyChecklistUsage(values: DailyChecklistUsage[]) {
+  return values.reduce((sum, item) => sum + item.count, 0);
+}
+
+function sumDailyJournalValue(values: DailyJournalCravingResult[], key: 'resistedCount' | 'failedCount') {
+  return values.reduce((sum, item) => sum + item[key], 0);
 }

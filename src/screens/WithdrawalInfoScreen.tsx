@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Card } from '@/components/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { getWithdrawalInfoForQuitDay, withdrawalInfoCards, withdrawalTimeline } from '@/data/withdrawalInfo';
@@ -12,8 +12,10 @@ type WithdrawalInfoScreenProps = {
 };
 
 export function WithdrawalInfoScreen({ quitProfile, onBack }: WithdrawalInfoScreenProps) {
+  const { width } = useWindowDimensions();
   const quitDay = getQuitDay(quitProfile.quitStartDate);
   const todayInfo = getWithdrawalInfoForQuitDay(quitDay);
+  const maxDescriptionChars = getMaxDescriptionChars(width);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -26,26 +28,29 @@ export function WithdrawalInfoScreen({ quitProfile, onBack }: WithdrawalInfoScre
         <Text style={styles.sectionTitle}>오늘의 금단현상 안내</Text>
         <Text style={styles.meta}>금연 {quitDay}일차 · 매일 오전 {quitProfile.reminderTime}</Text>
         <Text style={styles.infoText}>{todayInfo.title}</Text>
-        <Text style={styles.description}>{todayInfo.description}</Text>
+        <Text style={styles.description}>{wrapTextByWhitespace(todayInfo.description, maxDescriptionChars)}</Text>
         <Text style={styles.todo}>
-          Android에서는 로컬 알림 권한이 허용된 경우 매일 이 시간에 정보성 알림을 예약합니다. Web에서는 앱 실행 중 팝업으로 안내합니다.
+          {wrapTextByWhitespace(
+            'Android에서는 로컬 알림 권한이 허용된 경우 매일 이 시간에 정보성 알림을 예약합니다. Web에서는 앱 실행 중 팝업으로 안내합니다.',
+            maxDescriptionChars,
+          )}
         </Text>
       </Card>
 
       {withdrawalInfoCards.map((info) => (
         <Card key={info} muted>
-          <Text style={styles.infoText}>{info}</Text>
+          <Text style={styles.infoText}>{wrapTextByWhitespace(info, maxDescriptionChars)}</Text>
         </Card>
       ))}
 
       <Card>
-        <Text style={styles.sectionTitle}>금연 일수별 안내 흐름</Text>
+        <Text style={styles.sectionTitle}>날짜별 금단증상 안내</Text>
         {withdrawalTimeline.map((info) => (
           <View key={info.id} style={styles.timelineItem}>
             <Text style={styles.meta}>
-              {info.minDay}일차{info.maxDay !== undefined ? `-${info.maxDay}일차` : ' 이후'}
+              {info.minDay}일차
             </Text>
-            <Text style={styles.description}>{info.title}</Text>
+            <Text style={styles.description}>{wrapTextByWhitespace(info.description, maxDescriptionChars)}</Text>
           </View>
         ))}
       </Card>
@@ -53,6 +58,39 @@ export function WithdrawalInfoScreen({ quitProfile, onBack }: WithdrawalInfoScre
       <PrimaryButton label="메인으로 돌아가기" onPress={onBack} variant="secondary" />
     </ScrollView>
   );
+}
+
+function getMaxDescriptionChars(screenWidth: number) {
+  const horizontalPadding = spacing.xl * 2 + spacing.lg * 2;
+  const availableWidth = Math.max(screenWidth - horizontalPadding, 180);
+  return Math.max(14, Math.floor(availableWidth / (typography.body * 0.78)));
+}
+
+function wrapTextByWhitespace(text: string, maxLineChars: number) {
+  if (text.length <= maxLineChars) {
+    return text;
+  }
+
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let currentLine = '';
+
+  words.forEach((word) => {
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
+    if (nextLine.length > maxLineChars && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+      return;
+    }
+
+    currentLine = nextLine;
+  });
+
+  if (currentLine) {
+    lines.push(currentLine);
+  }
+
+  return lines.join('\n');
 }
 
 const styles = StyleSheet.create({

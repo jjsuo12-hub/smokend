@@ -22,6 +22,9 @@ export default function AppRoot() {
     const [savedResult, savedQuitProfile] = await Promise.all([getSmokingTypeResult(), getQuitProfile()]);
     setTestResult(savedResult);
     setQuitProfile(savedQuitProfile);
+    if (savedQuitProfile?.quitStartDate) {
+      void scheduleWithdrawalNotificationsSafely(savedQuitProfile.quitStartDate);
+    }
     setLoading(false);
   }, []);
 
@@ -137,3 +140,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+async function scheduleWithdrawalNotificationsSafely(startDate: string) {
+  if (Platform.OS === 'web') {
+    console.log('[withdrawalNotifications] Web 환경에서는 금단증상 푸시 알림 예약을 건너뜁니다.');
+    return;
+  }
+
+  try {
+    const { scheduleDailyWithdrawalNotification } = await import('@/utils/withdrawalNotifications');
+    await scheduleDailyWithdrawalNotification(startDate);
+  } catch (error) {
+    console.warn('[withdrawalNotifications] 앱 시작 시 금단증상 알림 예약에 실패했습니다.', error);
+  }
+}

@@ -6,7 +6,7 @@ import { defaultNotificationTime } from '@/data/withdrawalInfo';
 import { colors, spacing, typography } from '@/shared/styles';
 import { saveQuitProfile } from '@/storage/smokingStorage';
 import { QuitProfile } from '@/types/smoking';
-import { getQuitDay, getQuitStartDateFromDays } from '@/utils/date';
+import { getQuitStartDateFromDays } from '@/utils/date';
 import { scheduleWithdrawalReminder } from '@/utils/notifications';
 
 type QuitSetupScreenProps = {
@@ -26,7 +26,7 @@ export function QuitSetupScreen({ onCompleted }: QuitSetupScreenProps) {
     setSaving(true);
     try {
       const quitStartDate = getQuitStartDateFromDays(quitDays);
-      const notificationResult = await scheduleWithdrawalReminder(getQuitDay(quitStartDate), defaultNotificationTime);
+      const notificationResult = await scheduleWithdrawalReminder(quitStartDate, defaultNotificationTime);
       const profile: QuitProfile = {
         quitStartDate,
         initialQuitDays: quitDays,

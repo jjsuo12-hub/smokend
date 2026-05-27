@@ -13,6 +13,32 @@ export type TimeBucket = {
 
 export type RecommendedAction = CopingAction;
 
+export type DailyChecklistUsage = {
+  date: string;
+  label: string;
+  count: number;
+};
+
+export type DailyJournalCravingResult = {
+  date: string;
+  label: string;
+  resistedCount: number;
+  failedCount: number;
+};
+
+export type SevenDayComparisonMetric = {
+  label: string;
+  previousValue: number;
+  currentValue: number;
+  unit: string;
+};
+
+export type SevenDayAnalysis = {
+  checklistUsage: DailyChecklistUsage[];
+  journalCravingResults: DailyJournalCravingResult[];
+  comparisonMetrics: SevenDayComparisonMetric[];
+};
+
 export type ActionEffectRecord = {
   beforeUrgeScore: number;
   afterUrgeScore: number;
